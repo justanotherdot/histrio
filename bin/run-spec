@@ -37,5 +37,14 @@ echo "Running TLC on $SPEC_FILE with options: $*"
 echo "Working directory: $PROJECT_ROOT"
 echo
 
+# Default config file location
+CONFIG_FILE="models/$SPEC_NAME.cfg"
+
 cd "$PROJECT_ROOT"
-java -jar "$TLA_TOOLS" "$@" "$SPEC_FILE"
+
+# Check if config file exists and no -config option provided
+if [ -f "$CONFIG_FILE" ] && ! echo "$*" | grep -q "\-config"; then
+    java -jar "$TLA_TOOLS" -config "$CONFIG_FILE" "$@" "$SPEC_FILE"
+else
+    java -jar "$TLA_TOOLS" "$@" "$SPEC_FILE"
+fi
