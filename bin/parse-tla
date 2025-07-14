@@ -1,0 +1,36 @@
+#!/bin/sh -eu
+
+# TLA+ Parser runner for Histrio project
+# Usage: ./bin/parse-tla <spec_name>
+
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+TLA_TOOLS="$PROJECT_ROOT/vendor/tla2tools.jar"
+
+if [ ! -f "$TLA_TOOLS" ]; then
+    echo "Error: tla2tools.jar not found at $TLA_TOOLS"
+    echo "Please ensure vendor/tla2tools.jar exists"
+    exit 1
+fi
+
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 <spec_name>"
+    echo "Example: $0 Histrio"
+    exit 1
+fi
+
+SPEC_NAME="$1"
+SPEC_FILE="specs/$SPEC_NAME.tla"
+
+if [ ! -f "$SPEC_FILE" ]; then
+    echo "Error: Specification file not found: $SPEC_FILE"
+    exit 1
+fi
+
+# Set Java path if needed
+export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"
+
+echo "Parsing $SPEC_FILE"
+echo
+
+cd "$PROJECT_ROOT"
+java -cp "$TLA_TOOLS" tla2sany.SANY "$SPEC_FILE"
