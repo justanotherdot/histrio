@@ -1,0 +1,83 @@
+#!/bin/sh -eu
+
+# Run all TLA+ specifications in the Histrio project
+# Usage: ./bin/run-all-specs [tlc_options]
+
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+
+echo "Running all TLA+ specifications for Histrio project"
+echo "=================================================="
+echo
+
+# Find all .tla files in specs directory
+SPECS_DIR="$PROJECT_ROOT/specs"
+TESTS_DIR="$PROJECT_ROOT/tests"
+
+if [ ! -d "$SPECS_DIR" ]; then
+    echo "Error: specs directory not found at $SPECS_DIR"
+    exit 1
+fi
+
+# Pass through any additional TLC options
+TLC_OPTIONS="$*"
+
+echo "TLC options: ${TLC_OPTIONS:-none}"
+echo
+
+# Track results
+TOTAL=0
+PASSED=0
+FAILED=0
+
+run_spec() {
+    local spec_file="$1"
+    local spec_name=$(basename "$spec_file" .tla)
+    local category="$2"
+    
+    echo "[$category] Running $spec_name..."
+    TOTAL=$((TOTAL + 1))
+    
+    if "$PROJECT_ROOT/bin/run-spec" "$spec_name" $TLC_OPTIONS; then
+        echo "PASS [$category] $spec_name"
+        PASSED=$((PASSED + 1))
+    else
+        echo "FAIL [$category] $spec_name"
+        FAILED=$((FAILED + 1))
+    fi
+    echo
+}
+
+# Run main specifications
+echo "Running main specifications..."
+echo "------------------------------"
+for spec_file in "$SPECS_DIR"/*.tla; do
+    if [ -f "$spec_file" ] && [ -s "$spec_file" ]; then
+        run_spec "$spec_file" "SPEC"
+    fi
+done
+
+# Run tests if they exist
+if [ -d "$TESTS_DIR" ]; then
+    echo "Running test specifications..."
+    echo "-----------------------------"
+    for test_file in "$TESTS_DIR"/*.tla; do
+        if [ -f "$test_file" ] && [ -s "$test_file" ]; then
+            run_spec "$test_file" "TEST"
+        fi
+    done
+fi
+
+# Summary
+echo "Summary"
+echo "======="
+echo "Total specifications: $TOTAL"
+echo "Passed: $PASSED"
+echo "Failed: $FAILED"
+
+if [ $FAILED -eq 0 ]; then
+    echo "All specifications passed!"
+    exit 0
+else
+    echo "$FAILED specification(s) failed"
+    exit 1
+fi

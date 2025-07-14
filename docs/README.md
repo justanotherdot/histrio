@@ -54,18 +54,63 @@ This TLA+ specification aims to verify critical game properties:
 
 ### Prerequisites
 
-- [TLA+](https://lamport.azurewebsites.net/tla/tla.html) specification language
-- [TLC](https://lamport.azurewebsites.net/tla/tools.html) model checker
+- Java 11+ (OpenJDK 17 recommended)
+- TLA+ tools (included in `vendor/tla2tools.jar`)
+
+### Installation
+
+The project includes all necessary TLA+ tools:
+
+```bash
+# Verify Java installation
+java -version
+
+# Test TLA+ tools
+java -jar vendor/tla2tools.jar -help
+```
 
 ### Running the Model
 
-1. Open the main specification: `specs/Histrio.tla`
-2. Configure the model checker with `models/Histrio.cfg`
-3. Run TLC to verify properties and explore the state space
+Use the provided helper scripts for easy TLA+ operations:
+
+#### Model Checking
+```bash
+# Parse specification only
+./bin/parse-tla Histrio
+
+# Run model checker with default config
+./bin/run-spec Histrio
+
+# Run with multiple workers for better performance
+./bin/run-spec Histrio -workers auto
+
+# Run with specific configuration
+./bin/run-spec Histrio -config models/SmallModel.cfg
+
+# Run with additional TLC options
+./bin/run-spec Histrio -workers 4 -depth 100
+```
+
+#### Direct TLA+ Commands
+```bash
+# Parse specification
+java -cp vendor/tla2tools.jar tla2sany.SANY specs/Histrio.tla
+
+# Run model checker
+java -jar vendor/tla2tools.jar -config models/Histrio.cfg specs/Histrio.tla
+```
 
 ### Testing
 
-Run unit tests with the configurations in the `tests/` directory to verify specific components in isolation.
+Run unit tests with the configurations in the `tests/` directory:
+
+```bash
+./bin/run-spec ChipTests -config tests/ChipTests.cfg
+./bin/run-spec GameLoopTests -config tests/GameLoopTests.cfg
+
+# Run all specifications at once
+./bin/run-all-specs -workers auto
+```
 
 ## Contributing
 
